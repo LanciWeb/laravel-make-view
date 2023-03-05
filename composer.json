@@ -1,0 +1,21 @@
+{
+    "name": "lanciweb/laravel-make-view",
+    "description": "A Laravel package that allows to generate blade views via Artisan",
+    "type": "laravel-package",
+    "require-dev": {
+        "orchestra/testbench": "^8.0"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "LanciWeb\\LaravelMakeView\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Marco Lancellotti",
+            "email": "lancellotti.marco@yahoo.it"
+        }
+    ],
+    "require": {}
+}
