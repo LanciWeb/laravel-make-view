@@ -7,6 +7,35 @@ use Illuminate\Console\Command;
 class MakeViewCommand extends Command
 {
   /**
+   * The views folder path
+   * @var string
+   */
+  protected string $views_path;
+
+  /**
+   * The path provided by the user as an argument
+   * 
+   * @var string
+   */
+  protected string $arg;
+
+  /**
+   * An array formed from the string argument provided by the user
+   * 
+   * @var array
+   */
+  protected array $arg_elements;
+
+  /**
+   * The last element of the exploded array, used as the name of the view to create.
+   * If the --crud option is provided, this will be the name of the folder for the views.
+   * 
+   * @var string
+   */
+  protected string $last_element;
+
+
+  /**
    * The name and signature of the console command.
    *
    * @var string
@@ -29,34 +58,66 @@ class MakeViewCommand extends Command
    */
   public function handle()
   {
-    $views_path = resource_path('views');
+    // Setup of all initial values
+    $this->views_path = resource_path('views');
+    $this->arg =  $this->argument('path');
+    $this->arg_elements = explode('.', $this->arg);
+    $this->last_element = array_pop($this->arg_elements);
 
+    // Create folders according to the path argument
+    if (count($this->arg_elements)) $this->createFolders();
 
-    // If crud option is set
-    if ($this->option('crud')) {
-      $resource =  $this->argument('path');
-      $resource_folder = "$views_path/$resource";
+    // If CRUD Option is provided, generate the folder(s) and the canonical views
+    if ($this->option('crud')) $this->generateCrudViews();
 
-      if (!file_exists($resource_folder))  mkdir($resource_folder, 0777, true);
+    // If CRUD Option is not provided generate a single view.
+    else $this->generateView();
 
-      foreach (['index', 'show', 'create', 'edit'] as $view) fopen("$resource_folder/$view.blade.php", 'w');
-
-      $this->info("CRUD views for $resource successfully created!");
-    } else {
-      $arg =  $this->argument('path');
-      $args = explode('.', $arg);
-      $filename = array_pop($args);
-
-
-      if (count($args)) foreach ($args as $folder) {
-        if (!file_exists("$views_path/$folder"))  mkdir("$views_path/$folder", 0777, true);
-        $views_path .= "/$folder";
-      }
-
-      fopen("$views_path/$filename.blade.php", "w");
-
-      $this->info("View $arg successfully created!");
-    }
     return Command::SUCCESS;
+  }
+
+  /**
+   * Creates the folders based on user provided path argument
+   * @return void
+   */
+  protected function createFolders()
+  {
+    foreach ($this->arg_elements as $folder) {
+      if (!file_exists("$this->views_path/$folder"))  mkdir("$this->views_path/$folder", 0777, true);
+      $this->views_path .= "/$folder";
+    }
+  }
+
+  /**
+   * Creates the folders and the views based on user provided path argument when CRUD option is enabled
+   * @return void
+   */
+  protected function generateCrudViews()
+  {
+    $resource_folder = "$this->views_path/$this->last_element";
+    if (!file_exists($resource_folder)) mkdir($resource_folder, 0777, true);
+    foreach (['index', 'show', 'create', 'edit'] as $view) {
+      $file_path = "$resource_folder/$view.blade.php";
+      if (file_exists($file_path)) $this->warn("view '$this->arg.$view' already exists. Delete or rename the blade file and try again.");
+      else {
+        fopen($file_path, 'w');
+        $this->info("$this->arg.$view.blade.php successfully created.");
+      }
+    }
+  }
+
+  /**
+   * Creates the view based on user provided path argument 
+   * @return void
+   */
+  protected function generateView()
+  {
+    $file_path = "$this->views_path/$this->last_element.blade.php";
+    if (file_exists($file_path)) {
+      $this->warn("view '$this->arg' already exists. Delete or rename the blade file and try again.");
+    } else {
+      fopen($file_path, "w");
+      $this->info("View $this->arg successfully created!");
+    }
   }
 }
