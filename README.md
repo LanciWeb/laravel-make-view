@@ -47,6 +47,12 @@ php artisan make:view posts -c
 # shorthand for the same result as above
 ```
 
+```bash
+php artisan make:view admin.posts -c
+# creates 'index.blade.php', 'show.blade.php`, `create.blade.php' and `edit.blade.php'
+# in the 'resources/views/admin/posts' folder.
+```
+
 
 ## License
 
