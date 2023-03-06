@@ -37,9 +37,14 @@ php artisan make:view backoffice.admin.home
 Use the CRUD option to immeiately create the folder and the conventional resource views:
 
 ```bash
-php artisan make:view posts
+php artisan make:view posts --crud
 # creates 'index.blade.php', 'show.blade.php`, `create.blade.php' and `edit.blade.php'
 # in the 'resources/views/posts' folder.
+```
+
+```bash
+php artisan make:view posts -c
+# shorthand for the same result as above
 ```
 
 
