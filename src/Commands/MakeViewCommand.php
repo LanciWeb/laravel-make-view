@@ -138,6 +138,10 @@ class MakeViewCommand extends Command
 
   /**
    * Creates the file and shows the success message to the user
+   * 
+   * @param string $file_path - the path where to create the file
+   * @param string $file_name - the name of the file in the console messages
+   * @return void
    */
   function createFile($file_path, $file_name)
   {
