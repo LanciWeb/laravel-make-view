@@ -2,7 +2,9 @@
 
 namespace LanciWeb\LaravelMakeView\Commands;
 
+use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
 
 class MakeViewCommand extends Command
 {
@@ -83,7 +85,7 @@ class MakeViewCommand extends Command
   protected function createFolders()
   {
     foreach ($this->arg_elements as $folder) {
-      if (!file_exists("$this->views_path/$folder"))  mkdir("$this->views_path/$folder", 0777, true);
+      if (!File::exists("$this->views_path/$folder"))  File::makeDirectory("$this->views_path/$folder", 0777, true);
       $this->views_path .= "/$folder";
     }
   }
@@ -95,14 +97,12 @@ class MakeViewCommand extends Command
   protected function generateCrudViews()
   {
     $resource_folder = "$this->views_path/$this->last_element";
-    if (!file_exists($resource_folder)) mkdir($resource_folder, 0777, true);
+    if (!File::exists($resource_folder)) File::makeDirectory($resource_folder, 0777, true);
+
     foreach (['index', 'show', 'create', 'edit'] as $view) {
       $file_path = "$resource_folder/$view.blade.php";
-      if (file_exists($file_path)) $this->warn("view '$this->arg.$view' already exists. Delete or rename the blade file and try again.");
-      else {
-        fopen($file_path, 'w');
-        $this->info("$this->arg.$view.blade.php successfully created.");
-      }
+      $file_name = "$this->arg.$view.blade.php";
+      $this->fileCheck($file_path, $file_name);
     }
   }
 
@@ -113,11 +113,39 @@ class MakeViewCommand extends Command
   protected function generateView()
   {
     $file_path = "$this->views_path/$this->last_element.blade.php";
-    if (file_exists($file_path)) {
-      $this->warn("view '$this->arg' already exists. Delete or rename the blade file and try again.");
+    $file_name = $this->arg;
+    $this->fileCheck($file_path, $file_name);
+  }
+
+
+  /**
+   * Checks wether the file exists and creates it.
+   * If file exists prompt for confirmation.
+   * 
+   * @param string $file_path - the path where to create the file
+   * @param string $file_name - the name of the file in the console messages
+   * @return void
+   */
+  public function fileCheck($file_path, $file_name)
+  {
+    if (File::exists($file_path)) {
+      $this->warn("View $file_name already exists.");
+      if ($this->confirm('Do you want to overwrite it?')) $this->createFile($file_path, $file_name);
     } else {
-      fopen($file_path, "w");
-      $this->info("View $this->arg successfully created!");
+      $this->createFile($file_path, $file_name);
+    }
+  }
+
+  /**
+   * Creates the file and shows the success message to the user
+   */
+  function createFile($file_path, $file_name)
+  {
+    try {
+      File::put($file_path, '');
+      $this->info("View $file_name successfully created!");
+    } catch (Exception $e) {
+      $this->error("Could not create view $file_name.");
     }
   }
 }
